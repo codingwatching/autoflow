@@ -4,12 +4,13 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, UTC, date, timedelta
 from collections import defaultdict
 
-from sqlmodel import select, Session, or_, func, case, desc
+from sqlmodel import select, Session, or_, func, case, desc, col
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
-from app.models import Chat, User, ChatMessage, ChatUpdate
+from app.models import Chat, User, ChatMessage, ChatUpdate, ChatFilters, ChatOrigin
 from app.repositories.base_repo import BaseRepo
+from app.exceptions import ChatNotFound, ChatMessageNotFound
 
 
 class ChatRepo(BaseRepo):
@@ -20,6 +21,7 @@ class ChatRepo(BaseRepo):
         session: Session,
         user: User | None,
         browser_id: str | None,
+        filters: ChatFilters,
         params: Params | None = Params(),
     ) -> Page[Chat]:
         query = select(Chat).where(Chat.deleted_at == None)
@@ -30,6 +32,23 @@ class ChatRepo(BaseRepo):
                 )
         else:
             query = query.where(Chat.browser_id == browser_id, Chat.user_id == None)
+
+        # filters
+        if filters.created_at_start:
+            query = query.where(Chat.created_at >= filters.created_at_start)
+        if filters.created_at_end:
+            query = query.where(Chat.created_at <= filters.created_at_end)
+        if filters.updated_at_start:
+            query = query.where(Chat.updated_at >= filters.updated_at_start)
+        if filters.updated_at_end:
+            query = query.where(Chat.updated_at <= filters.updated_at_end)
+        if filters.chat_origin:
+            query = query.where(col(Chat.origin).contains(filters.chat_origin))
+        # if filters.user_id:
+        #     query = query.where(Chat.user_id == filters.user_id)
+        if filters.engine_id:
+            query = query.where(Chat.engine_id == filters.engine_id)
+
         query = query.order_by(Chat.created_at.desc())
         return paginate(session, query, params)
 
@@ -41,6 +60,16 @@ class ChatRepo(BaseRepo):
         return session.exec(
             select(Chat).where(Chat.id == chat_id, Chat.deleted_at == None)
         ).first()
+
+    def must_get(
+        self,
+        session: Session,
+        chat_id: UUID,
+    ) -> Chat:
+        chat = self.get(session, chat_id)
+        if not chat:
+            raise ChatNotFound(chat_id)
+        return chat
 
     def update(
         self,
@@ -90,6 +119,16 @@ class ChatRepo(BaseRepo):
                 ChatMessage.chat.has(Chat.deleted_at == None),
             )
         ).first()
+
+    def must_get_message(
+        self,
+        session: Session,
+        chat_message_id: int,
+    ):
+        msg = self.get_message(session, chat_message_id)
+        if not msg:
+            raise ChatMessageNotFound(chat_message_id)
+        return msg
 
     def create_message(
         self,
@@ -202,6 +241,33 @@ class ChatRepo(BaseRepo):
 
         stats.sort(key=lambda x: x["date"])
         return stats
+
+    def list_chat_origins(
+        self,
+        db_session: Session,
+        search: Optional[str] = None,
+        params: Params = Params(),
+    ) -> Page[ChatOrigin]:
+        query = (
+            select(Chat.origin, func.count(Chat.id).label("chats"))
+            .where(Chat.deleted_at == None)
+            .where(Chat.origin != None)
+            .where(Chat.origin != "")
+        )
+
+        if search:
+            query = query.where(Chat.origin.ilike(f"%{search}%"))
+
+        query = query.group_by(Chat.origin).order_by(desc("chats"))
+
+        return paginate(
+            db_session,
+            query,
+            params,
+            transformer=lambda chats: [
+                ChatOrigin(origin=chat.origin, chats=chat.chats) for chat in chats
+            ],
+        )
 
 
 chat_repo = ChatRepo()

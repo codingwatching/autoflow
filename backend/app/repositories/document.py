@@ -63,5 +63,9 @@ class DocumentRepo(BaseRepo):
         stmt = delete(Document).where(Document.data_source_id == datasource_id)
         session.exec(stmt)
 
+    def fetch_by_ids(self, session: Session, document_ids: list[int]) -> list[Document]:
+        stmt = select(Document).where(Document.id.in_(document_ids))
+        return session.exec(stmt).all()
+
 
 document_repo = DocumentRepo()

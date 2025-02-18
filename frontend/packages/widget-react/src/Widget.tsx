@@ -1,6 +1,7 @@
 import type { BootstrapStatus } from '@/api/system';
 import { ManualScrollVoter } from '@/components/auto-scroll';
 import { AutoScroll } from '@/components/auto-scroll/auto-scroll';
+import type { ChatController } from '@/components/chat/chat-controller';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
 import { Conversation } from '@/components/chat/conversation';
 import { useGtagFn } from '@/components/gtag-provider';
@@ -108,6 +109,8 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
     }
   }, [trigger]);
 
+  const newChatRef = useRef<ChatController['post'] | undefined>(undefined);
+
   useImperativeHandle(ref, () => ({
     get open () {
       return openRef.current;
@@ -125,19 +128,19 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
       setDark(d);
     },
     get initialized (): true { return true; },
+    newChat (content: string) {
+      newChatRef.current?.({
+        content,
+        chat_engine: chatEngine,
+      });
+    },
   }), []);
 
   return (
     <PortalProvider container={container}>
       <BootstrapStatusProvider bootstrapStatus={bootstrapStatus}>
         <ExperimentalFeaturesProvider features={experimentalFeatures}>
-          <ChatsProvider
-            onChatCreated={id => {
-              window.dispatchEvent(new CustomEvent('tidbainewchat', {
-                detail: { id },
-              }));
-            }}
-          >
+          <ChatsProvider>
             <Dialog open={open} onOpenChange={(open) => {
               setOpen(open);
               if (!open) {
@@ -171,9 +174,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
                         Ask AI
                       </span>
                     </DialogTitle>
-                    <DialogDescription className="sr-only">
-                      .
-                    </DialogDescription>
+                    <DialogDescription className="sr-only" />
                   </DialogHeader>
                   <AutoScroll target={scrollTarget} edgePixels={12}>
                     <ManualScrollVoter />
@@ -202,6 +203,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
                           )}
                           preventMutateBrowserHistory
                           preventShiftMessageInput
+                          newChatRef={newChatRef}
                         />
                       </div>
                     </ScrollArea>

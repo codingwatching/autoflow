@@ -30,7 +30,7 @@ const ChatsContext = createContext<ChatsProviderValues>({
 
 const ChatControllerContext = createContext<ChatController | null>(null);
 
-export function ChatsProvider ({ onChatCreated, children }: { children: ReactNode, onChatCreated?: (id: string, chat: Chat, controller: ChatController) => void }) {
+export function ChatsProvider ({ onChatCreated, children }: { children: ReactNode, /** @deprecated */onChatCreated?: (id: string, chat: Chat, controller: ChatController) => void }) {
   const bootstrapStatusRef = useLatestRef(useBootstrapStatus());
   const [chats, setChats] = useState(() => new Map<string, ChatController>);
 

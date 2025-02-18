@@ -34,9 +34,9 @@ To learn more about OpenAI, please visit [OpenAI](https://platform.openai.com/).
 
 To learn more about Google Gemini, please visit [Google Gemini](https://gemini.google.com/).
 
-### Anthropic Vertex AI
+### Vertex AI
 
-To learn more about Anthropic Vertex AI, please visit [Anthropic Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-claude)
+To learn more about Vertex AI, please visit [Vertex AI](https://cloud.google.com/vertex-ai).
 
 ### Amazon Bedrock
 
@@ -80,7 +80,8 @@ Default config:
 
 To learn more about OpenRouter, please visit [OpenRouter](https://openrouter.ai/).
 
-<!-- #### ZhipuAI BigModel
+{/*
+#### ZhipuAI BigModel
 
 Default config:
 
@@ -91,7 +92,8 @@ Default config:
 }
 ```
 
-To learn more about BigModel, please visit [BigModel](https://open.bigmodel.cn/). -->
+To learn more about BigModel, please visit [BigModel](https://open.bigmodel.cn/). 
+*/}
 
 #### Ollama
 
@@ -119,6 +121,8 @@ To learn more about vLLM, please visit [vLLM](https://docs.vllm.ai/en/stable/).
 
 #### Xinference
 
+If you assigned a model uid different from the model name, you need to fill in **model uid** in the box `model`.
+
 Default config:
 
 ```json
@@ -126,6 +130,7 @@ Default config:
     "api_base": "http://localhost:9997/v1/"
 }
 ```
+
 To learn more about Xinference, please visit [Xinference](https://inference.readthedocs.io/en/latest/).
 
 
@@ -154,3 +159,29 @@ Do not mix `Model version` and `API version` up, they are different.
 
 ![Azure OpenAI Service Deployment Tab - LLM](https://github.com/user-attachments/assets/158f845c-5f38-40d7-b66a-8528d7df178e)
 
+#### Novita AI
+
+Default config:
+
+```json
+{
+    "api_base": "https://api.novita.ai/v3/openai"
+}
+```
+
+To learn more about Novita AI, please visit [Novita AI](https://novita.ai/).
+
+#### DeepSeek
+
+DeepSeek provides chat model `deepseek-chat`.
+
+Default config:
+
+```json
+{
+    "api_base": "https://api.deepseek.com/v1",
+    "is_chat_model": true
+}
+```
+
+To learn more about DeepSeek, please visit [DeepSeek](https://www.deepseek.com/).

@@ -20,11 +20,15 @@ class EmbeddingModelDescriptor(EmbeddingModelItem):
 
 class UserDescriptor(BaseModel):
     id: UUID
+    email: str
 
 
 class KnowledgeBaseDescriptor(BaseModel):
     id: int
     name: str
+
+    def __hash__(self):
+        return hash(self.id)
 
 
 class DataSourceDescriptor(BaseModel):
@@ -44,4 +48,4 @@ class ChatEngineBasedRetrieveRequest(BaseModel):
     top_k: Optional[int] = 5
     similarity_top_k: Optional[int] = None
     oversampling_factor: Optional[int] = 5
-    enable_kg_enhance_query_refine: Optional[bool] = False
+    refine_question_with_kg: Optional[bool] = False

@@ -206,6 +206,14 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
     const newCreated = !this.chat;
     this.chat = { ...this.chat, ...chat };
     this.emit(newCreated ? 'created' : 'updated', this.chat);
+
+    if (process.env.NEXT_PUBLIC_IS_WIDGET) {
+      if (newCreated) {
+        window.dispatchEvent(new CustomEvent('tidbainewchat', {
+          detail: { id: chat.id },
+        }));
+      }
+    }
   }
 
   upsertMessage (message: ChatMessage): void {
@@ -240,7 +248,7 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
         break;
       case 'tool_result':
         this._processToolResultPart(ongoingMessageController, part);
-        break
+        break;
       case 'finish_step':
 
       case 'finish_message':
